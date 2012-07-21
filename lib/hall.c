@@ -21,6 +21,8 @@
 #include "sys_service.h"
 #include <stdlib.h> // for malloc
 
+#define K_EMF    ((1000/256)* 182.9/219.6)  // A/D units per hall count per ms, scale by >>8
+
 //Private Functions
 static void SetupTimer1(void);
 static void SetupTimer2(void);
@@ -38,7 +40,7 @@ static void hallServiceRoutine(void);
 long old_right_time, right_time, right_delta; // time of last event
 // unsigned long tic, toc;
 long old_left_time, left_time, left_delta;
-long motor_count[2]; // 0 = left 1 = right counts on sensor
+unsigned long motor_count[2]; // 0 = left 1 = right counts on sensor
 
 MoveQueue hallMoveq;
 moveCmdT hallCurrentMove, hallIdleMove, hallManualMove;
@@ -79,10 +81,6 @@ static void SetupTimer1(void)
             T1_SYNC_EXT_OFF & T1_IDLE_CON;
 
     T1PERvalue = 0x9C40; //clock period = 0.001s = (T1PERvalue/FCY) (1KHz)
-    //T1PERvalue = 0x9C40/2;
-    //getT1_ticks() = 0;
-    //OpenTimer1(T1CON1value, T1PERvalue);
-    //ConfigIntTimer1(T1_INT_PRIOR_6 & T1_INT_ON);
     int retval;
     retval = sysServiceConfigT1(T1CON1value, T1PERvalue, T1_INT_PRIOR_6 & T1_INT_ON);
     //TODO: Put a soft trap here, conditional on retval
@@ -281,7 +279,9 @@ void hallSetVelProfile(int pid_num, int *interval, int *delta, int *vel) {
 
 void hallPIDSetInput(int pid_num, int input_val, unsigned int run_time) {
     unsigned long temp;
-    hallPIDObjs[pid_num].v_input = input_val;
+    /*      ******   use velocity setpoint + throttle for compatibility between Hall and Pullin code *****/
+    /* otherwise, miss first velocity set point */
+    hallPIDObjs[pid_num].v_input = input_val + (int) (hallPIDVel[pid_num].vel[0] * K_EMF); //initialize first velocity ;
     hallPIDObjs[pid_num].run_time = run_time;
     hallPIDObjs[pid_num].start_time = getT1_ticks();
     //zero out running PID values
@@ -324,7 +324,7 @@ void hallSetGains(int pid_num, int Kp, int Ki, int Kd, int Kaw, int Kff) {
     hallPIDObjs[pid_num].Ki = Ki;
     hallPIDObjs[pid_num].Kd = Kd;
     hallPIDObjs[pid_num].Kaw = Kaw;
-    hallPIDObjs[pid_num].Kff = Kff;
+    hallPIDObjs[pid_num].feedforward = Kff;
 }
 
 void hallPIDOn(int pid_num) {
@@ -343,6 +343,7 @@ void hallZeroPos(int pid_num) {
     EnableIntIC8;
     // reset position setpoint as well
     hallPIDObjs[pid_num].p_input = 0;
+    hallPIDObjs[pid_num].v_input = 0; //RF4 change
     hallPIDVel[pid_num].leg_stride = 0; // strides also reset
 }
 
@@ -389,6 +390,7 @@ static void hallGetSetpoint() {
             hallPIDVel[j].interpolate = 0;
             hallPIDObjs[j].p_input += hallPIDVel[j].delta[index]; //update to next set point
             hallPIDVel[j].expire += hallPIDVel[j].interval[(index + 1) % NUM_VELS]; // expire time for next interval
+            hallPIDObjs[j].v_input = (int) (hallPIDVel[j].vel[(index + 1) % NUM_VELS] * K_EMF); //update to next velocity
             // got to next index point
             hallPIDVel[j].index++;
 
@@ -401,6 +403,7 @@ static void hallGetSetpoint() {
                     hallPIDObjs[j].p_input += 3;
                 }
             } // loop on index
+
         }
     }
 }
@@ -411,26 +414,17 @@ static void hallSetControl() {
     for (j = 0; j < NUM_HALL_PIDS; j++) { //pidobjs[0] : right side
         // p_input has scaled velocity interpolation to make smoother
         hallPIDObjs[j].p_error = hallPIDObjs[j].p_input + (hallPIDVel[j].interpolate >> 8) - motor_count[j];
-        //hallPIDObjs[j].v_error = hallPIDObjs[j].v_input - measurements[j];
         hallPIDObjs[j].v_error = hallPIDObjs[j].v_input - hallbemf[j];
         //Update values
         hallUpdatePID(&(hallPIDObjs[j]));
         if (hallPIDObjs[j].onoff) {
-            //Might want to change this in the future, if we want to track error
-            //even when the motor is off.
-            //Set PWM duty cycle
-            if (j == 0) { // PWM1.L
-                SetDCMCPWM(MC_CHANNEL_PWM1, hallPIDObjs[0].output, 0); //PWM1.L
-            } else if (j == 1) { // PWM2.l
-                SetDCMCPWM(MC_CHANNEL_PWM2, hallPIDObjs[1].output, 0); // PWM2.L
-            }
+        //Might want to change this in the future, if we want to track error
+        //even when the motor is off.
+        //Set PWM duty cycle
+            SetDCMCPWM(hallOutputChannels[j], hallPIDObjs[j].output, 0); //PWM1.L
         }//end of if (on / off)
         else { //if PID loop is off
-            if (j == 0) {
-                SetDCMCPWM(MC_CHANNEL_PWM1, 0, 0);
-            } else if (j == 1) {
-                SetDCMCPWM(MC_CHANNEL_PWM2, 0, 0);
-            }
+            SetDCMCPWM(hallOutputChannels[j], 0, 0);
         }
     } // end of for(j)
 }
@@ -442,7 +436,7 @@ static void hallUpdatePID(pidPos *pid) {
     // better check scale factors
     /* just use simpled PID, offset is already subtracted in PID GetState */
     // scale so doesn't over flow
-    pid->preSat = pid->Kff + pid->p +
+    pid->preSat = pid->feedforward + pid->p +          //Note Hall-specific software PID update uses direct ff, not Kff gain
             ((pid->i + pid->d) >> 4); // divide by 16
     pid->output = pid->preSat;
     //Clamp output above 0 since don't have H bridge
@@ -500,7 +494,7 @@ static void hallUpdateBEMF() {
 ////   Public functions
 ////////////////////////
 
-void hallInitPIDObjPos(pidPos *pid, int Kp, int Ki, int Kd, int Kaw, int Kff) {
+void hallInitPIDObjPos(pidPos *pid, int Kp, int Ki, int Kd, int Kaw, int feedforward) {
     pid->p_input = 0;
     pid->v_input = 0;
     pid->p = 0;
@@ -510,7 +504,7 @@ void hallInitPIDObjPos(pidPos *pid, int Kp, int Ki, int Kd, int Kaw, int Kff) {
     pid->Ki = Ki;
     pid->Kd = Kd;
     pid->Kaw = Kaw;
-    pid->Kff = Kff;
+    pid->feedforward = feedforward; //NOT a gain here, direct ff term
     pid->output = 0;
     pid->onoff = 0;
     pid->p_error = 0;
@@ -520,7 +514,7 @@ void hallInitPIDObjPos(pidPos *pid, int Kp, int Ki, int Kd, int Kaw, int Kff) {
 
 // called from steeringSetup()
 
-void hallInitPIDObj(pidObj *pid, int Kp, int Ki, int Kd, int Kaw, int Kff) {
+void hallInitPIDObj(pidObj *pid, int Kp, int Ki, int Kd, int Kaw, int feedforward) {
     pid->input = 0;
     pid->dState = 0;
     pid->iState = 0;
@@ -535,11 +529,12 @@ void hallInitPIDObj(pidObj *pid, int Kp, int Ki, int Kd, int Kaw, int Kff) {
     pid->Ki = Ki;
     pid->Kd = Kd;
     pid->Kaw = Kaw;
-    pid->Kff = 0;
+    pid->Kff = feedforward;
     pid->onoff = 0;
     pid->error = 0;
 }
 
-long* hallGetMotorCounts() {
-    return motor_count;
+void hallGetMotorCounts(unsigned long* dest) {
+    dest[0] = motor_count[0];
+    dest[1] = motor_count[1];
 }

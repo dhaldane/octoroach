@@ -8,7 +8,7 @@
 #define __SETTINGS_H
 
 
-#error "REQUIRED: Review and set radio channel & network parameters in firmware/source/settings.h  , then comment out this line."
+//#error "REQUIRED: Review and set radio channel & network parameters in firmware/source/settings.h  , then comment out this line."
 /////// Radio settings ///////
 // Motile address ; all MRI robots were shipped with this configuration
 #define RADIO_CHANNEL		0x0e
@@ -28,6 +28,6 @@
 
 /////// Configuration options ///////
 //Configure project-wide for Hall Sensor operation
-//#define HALL_SENSORS
+#define HALL_SENSORS
 
 #endif //__SETTINGS_H

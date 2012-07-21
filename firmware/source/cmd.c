@@ -563,8 +563,11 @@ static void cmdSetVelProfile(unsigned char status, unsigned char length, unsigne
 // note motor_count is long (4 bytes)
 void cmdZeroPos(unsigned char status, unsigned char length, unsigned char *frame) {
 
+    unsigned long mcounts[2];
+    hallGetMotorCounts(mcounts);
+
     radioSendPayload(macGetDestAddr(), payCreate(2*sizeof(long),
-            (unsigned char *)(hallGetMotorCounts()), status, CMD_ZERO_POS));
+            (unsigned char *)(mcounts), status, CMD_ZERO_POS));
     hallZeroPos(0);
     hallZeroPos(1);
 }
@@ -574,7 +577,10 @@ static void cmdHallTelemetry(unsigned char status, unsigned char length, unsigne
     //TODO: Integration of hall telemetry is unfinished. Fuction will currently
     // do nothing.
 
+    //This function is for streaming live hall PID telemetry.
+
     PKT_UNPACK(_args_cmdHallTelemetry, argsPtr, frame);
+    argsPtr->count = 0; //Dummy write to suppress warning, TODO fix this
 
     //start time = argsPtr->startDealy + getT1_ticks();
     //telemSetSkip(argsPtr->skip);

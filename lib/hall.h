@@ -43,7 +43,7 @@ typedef struct {
     unsigned long run_time;
     unsigned long start_time;
     int inputOffset;
-    int Kff;
+    int feedforward; //NOT a gain here, direct FF term
     long preSat; // output value before saturations
     int output; //  control output
     int maxVal, minVal;
@@ -83,6 +83,6 @@ void hallSetGains(int pid_num, int Kp, int Ki, int Kd, int Kaw, int ff);
 void hallGetState(int *measurements);
 void hallPIDOn(int pid_num);
 void hallZeroPos(int pid_num);
-long* hallGetMotorCounts();
+void hallGetMotorCounts(unsigned long* dest);
 
 #endif // __HALL_H
