@@ -363,7 +363,11 @@ static void hallServiceRoutine(void)
     LED_GREEN = _RB4;
     LED_RED = _RB5;
 
-    if (getT1_ticks() > lastMoveTime) // turn off if done running
+    unsigned long temp = getT1_ticks();
+
+     if (temp >= lastMoveTime)
+ //   if ((temp >= lastMoveTime)
+//            && ((hallPIDObjs[0].onoff == PID_ON) || (hallPIDObjs[1].onoff == PID_ON)) )  // turn off if done running
     { //	hallPIDSetInput(0, 0, 0);    don't reset state when done run, keep for recording telemetry
         hallPIDObjs[0].onoff = 0;
         //	hallPIDSetInput(1, 0, 0);

@@ -75,7 +75,6 @@ typedef struct{
         unsigned int runtime1;
         int chan2;
         unsigned int runtime2;
-        unsigned int telem_samples;
 } _args_cmdSetThrustClosedLoop;
 
 //cmdSetPIDGains

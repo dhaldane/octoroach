@@ -368,8 +368,6 @@ static void cmdSetThrustClosedLoop(unsigned char status, unsigned char length, u
     hallPIDSetInput(1 , argsPtr->chan1, argsPtr->runtime2);
     hallPIDOn(1);
 #else
-    //_args_cmdSetThrustClosedLoop* argsPtr =
-    //        (_args_cmdSetThrustClosedLoop*) (frame);
     PKT_UNPACK(_args_cmdSetThrustClosedLoop, argsPtr, frame);
 
     legCtrlSetInput(LEG_CTRL_LEFT, argsPtr->chan1);
@@ -377,13 +375,6 @@ static void cmdSetThrustClosedLoop(unsigned char status, unsigned char length, u
 
     legCtrlSetInput(LEG_CTRL_RIGHT, argsPtr->chan2);
     legCtrlOnOff(LEG_CTRL_RIGHT, PID_ON); //Motor PID #2 -> ON
-
-    //This is now obsolete
-    //unsigned char temp[2];
-    //*(unsigned int*)temp = 1000;
-    //if (argsPtr->telem_samples > 0) {
-    //    cmdGetPIDTelemetry(0, 2, (unsigned char*) (&telem_samples));
-    //}
 #endif
 }
 

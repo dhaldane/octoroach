@@ -95,7 +95,7 @@ def sendEcho(msg):
     
 def downloadTelemetry(numSamples):
     #Wait for run length before starting download
-    time.sleep((shared.runtime + shared.leadinTime + shared.leadoutTime)/1000.0 + 1)
+    time.sleep((shared.runtime + shared.leadoutTime)*1.10/1000.0 )
     
     raw_input("Press Enter to start readback ...")
     print "started readback"

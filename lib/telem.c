@@ -19,7 +19,8 @@
 
 #define TIMER_FREQUENCY     300                 // 400 Hz
 #define TIMER_PERIOD        1/TIMER_FREQUENCY
-#define DEFAULT_SKIP_NUM    2 //Default to 150 Hz save rate
+//#define DEFAULT_SKIP_NUM    2 //Default to 150 Hz save rate
+#define DEFAULT_SKIP_NUM    1 //300Hz
 
 #if defined(__RADIO_HIGH_DATA_RATE)
 #define READBACK_DELAY_TIME_MS 3
@@ -31,6 +32,7 @@
 //TODO: Remove externs by adding getters to other modules
 extern pidObj motor_pidObjs[NUM_MOTOR_PIDS];
 extern int bemf[NUM_MOTOR_PIDS];
+extern int hallbemf[NUM_HALL_PIDS];
 extern pidObj steeringPID;
 
 //global flag from radio module to know if last packet was ACK'd
@@ -221,8 +223,14 @@ static void telemISRHandler() {
             data.telemStruct.accelX = xldata[0];
             data.telemStruct.accelY = xldata[1];
             data.telemStruct.accelZ = xldata[2];
+#ifdef HALL_SENSORS
+            data.telemStruct.bemfL = hallbemf[0];
+            data.telemStruct.bemfR = hallbemf[1];
+#else
             data.telemStruct.bemfL = bemf[0];
             data.telemStruct.bemfR = bemf[1];
+#endif
+
             data.telemStruct.sOut = steeringPID.output;
             data.telemStruct.Vbatt = adcGetVBatt();
             data.telemStruct.steerAngle = steeringPID.input;

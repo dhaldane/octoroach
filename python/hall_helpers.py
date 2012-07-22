@@ -19,13 +19,19 @@ class hallParams:
     delta = []
     intervals = []
     vel = []
-    def __init__(self, motorgains, throttle, duration, delta, intervals, vel):
+    #cyclePeriod = 1000; #default value
+    def __init__(self, motorgains, throttle, duration, delta, intervals):
         self.motorgains = motorgains
         self.throttle = throttle
         self.duration = duration
         self.delta = delta
         self.intervals = intervals
-        self.vel = vel
+        #vel is strictly a function of delta and durations
+        self.vel = [0,0,0,0]
+        for i in range(0,4):
+            self.vel[i] = (self.delta[i] <<8)/self.intervals[i]
+        self.cyclePeriod = sum(self.intervals)
+        self.legFrequency = 1000.0 /self.cyclePeriod
 
 
 def xb_safe_exit():
@@ -103,9 +109,10 @@ def setVelProfile(params):
     print "set points [encoder values]", params.delta
     print "intervals (ms)",params.intervals
     print "velocities (<<8)",params.vel
+    print "Cyclic frequency :", params.legFrequency
     temp = 2*(params.intervals + params.delta + params.vel)
     xb_send(0, command.SET_VEL_PROFILE, pack('24h',*temp))
-    time.sleep(0.3)
+    time.sleep(0.2)
     
 
 # set robot control gains
@@ -115,7 +122,7 @@ def setHallGains(motorgains):
         print "Setting motor gains. Packet:",count
         count = count + 1
         xb_send(0, command.SET_HALL_GAINS, pack('10h',*motorgains))
-        time.sleep(0.3)
+        time.sleep(0.2)
         if count > 8:
             xb_safe_exit()
 
@@ -148,9 +155,9 @@ def readinGains(lr, params):
     
 
 # execute move command
-def proceed(params):
-    thrust = [params.throttle[0], params.duration, params.throttle[1], params.duration, 0]
-    xb_send(0, command.SET_THRUST_CLOSED_LOOP, pack('5h',*thrust))
+def hallProceed(params):
+    thrust = [params.throttle[0], params.duration, params.throttle[1], params.duration]
+    xb_send(0, command.SET_THRUST_CLOSED_LOOP, pack('4h',*thrust))
     print "Throttle = ",params.throttle,"duration =", params.duration
     time.sleep(0.1)
 
@@ -187,3 +194,7 @@ def getDstAddrString():
     
 def sendWhoAmI():
     xb_send(0, command.WHO_AM_I, "Robot Echo") 
+    
+def hallZeroPos():
+    xb_send(0, command.ZERO_POS,  "Zero motor")
+    time.sleep(0.1)

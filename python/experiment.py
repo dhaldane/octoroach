@@ -48,7 +48,7 @@ def main():
     
     motorgains = [8000,100,2,0,0 , 8000,100,2,0,0] #Hardware PID
     #motorgains = [200,2,0,2,0,    200,2,0,2,0]       #Software PID
-    setMotorGains(motorgains)
+    ####setMotorGains(motorgains)
 
     #Steering gains format:
     #  [ Kp , Ki , Kd , Kaw , Kff]
@@ -56,7 +56,7 @@ def main():
     steeringGains = [5000,0,0,0,0,  STEER_MODE_DECREASE] # Disables steering controller
     #steeringGains = [20,1,0,1,0,  STEER_MODE_DECREASE]
     #steeringGains = [50,10,0,0,0,  STEER_MODE_DECREASE] # Hardware PID
-    setSteeringGains(steeringGains)
+    #####setSteeringGains(steeringGains)
 
     #### Do not send more than 5 move segments per packet!   ####
     #### Instead, send multiple packets, and don't use       ####
@@ -64,16 +64,16 @@ def main():
     #### This will be fixed to be automatic in the future.   ####
 
     #Constant example
-    #moves = 1
-    #moveq = [moves, \
-    #         135, 135, 10000,   MOVE_SEG_CONSTANT, 0, 0, 0]
+    moves = 1
+    moveq = [moves, \
+             0, 0, 10000,   MOVE_SEG_CONSTANT, 0, 0, 0]
              
     #Ramp example
-    moves = 3
-    moveq = [moves, \
-        0,   0,   500,   MOVE_SEG_RAMP,    300, 300, 0,
-        150, 150, 1000,   MOVE_SEG_CONSTANT, 0,  0,  0,
-        150, 150, 500,   MOVE_SEG_RAMP, -300,  -300,  0]
+    #moves = 3
+    #moveq = [moves, \
+    #    0,   0,   500,   MOVE_SEG_RAMP,    300, 300, 0,
+    #    150, 150, 1000,   MOVE_SEG_CONSTANT, 0,  0,  0,
+    #    150, 150, 500,   MOVE_SEG_RAMP, -300,  -300,  0]
 
     #Sin example
     #RAD_TO_BAMS16 = (0x7FFF)/(3.1415)
@@ -106,7 +106,7 @@ def main():
     time.sleep(shared.leadinTime / 1000.0)
     #Send the move queue to the robot; robot will start processing it
     #as soon as it is received
-    sendMoveQueue(moveq)
+    #######sendMoveQueue(moveq)
     
 
     if SAVE_DATA:
