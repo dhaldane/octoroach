@@ -88,8 +88,7 @@ void encSetup(void) {
 void encGetRPos(void) {
 
     unsigned char enc_data_r1, enc_data_r2;
-
-    unsigned char rpos;
+    unsigned short rpos;
 
     i2cStartTx(ENC_I2C_CHAN); //read first register
     i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_R_WR);
@@ -111,8 +110,6 @@ void encGetRPos(void) {
 
     rpos = ((enc_data_r2 << 6)+(enc_data_r1 & 0x3F)); //concatenate registers
     encPos.RPOS = rpos;
-
-    return;
 }
 
 /*****************************************************************************
@@ -208,7 +205,7 @@ static inline void encoderSetupPeripheral(void) { //same setup as ITG3200 for co
             I2C1_STOP_DIS & I2C1_RESTART_DIS & I2C1_START_DIS;
 
     // BRG = Fcy(1/Fscl - 1/10000000)-1, Fscl = 909KHz 	
-    I2C1BRGvalue = 39;
+    I2C1BRGvalue = 95;
     OpenI2C1(I2C1CONvalue, I2C1BRGvalue);
     IdleI2C1();
 }
