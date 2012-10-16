@@ -87,29 +87,19 @@ void encSetup(void) {
  *****************************************************************************/
 void encGetRPos(void) {
 
-    unsigned char enc_data_r1, enc_data_r2;
-    unsigned short rpos;
+    unsigned char enc_data[2];
 
-    i2cStartTx(ENC_I2C_CHAN); //read first register
+    i2cStartTx(ENC_I2C_CHAN); //Setup to burst read both registers
     i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_R_WR);
     i2cSendByte(ENC_I2C_CHAN, 0xFE);
     i2cEndTx(ENC_I2C_CHAN);
+
     i2cStartTx(ENC_I2C_CHAN);
     i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_R_RD);
-    enc_data_r1 = i2cReceiveByte(ENC_I2C_CHAN);
+    i2cReadString(1,2,enc_data,10000);
     i2cEndTx(ENC_I2C_CHAN);
 
-    i2cStartTx(ENC_I2C_CHAN); //read second register
-    i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_R_WR);
-    i2cSendByte(ENC_I2C_CHAN, 0xFF);
-    i2cEndTx(ENC_I2C_CHAN);
-    i2cStartTx(ENC_I2C_CHAN);
-    i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_R_RD);
-    enc_data_r2 = i2cReceiveByte(ENC_I2C_CHAN);
-    i2cEndTx(ENC_I2C_CHAN);
-
-    rpos = ((enc_data_r2 << 6)+(enc_data_r1 & 0x3F)); //concatenate registers
-    encPos.RPOS = rpos;
+    encPos.RPOS = ((enc_data[1] << 6)+(enc_data[0] & 0x3F)); //concatenate registers
 }
 
 /*****************************************************************************
@@ -120,29 +110,19 @@ void encGetRPos(void) {
  *****************************************************************************/
 void encGetLPos(void) {
 
-    unsigned char enc_data_r1, enc_data_r2;
-    unsigned short lpos;
+    unsigned char enc_data[2];
 
-    i2cStartTx(ENC_I2C_CHAN); //read first register
+    i2cStartTx(ENC_I2C_CHAN); //Setup to burst read both registers
     i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_L_WR);
     i2cSendByte(ENC_I2C_CHAN, 0xFE);
     i2cEndTx(ENC_I2C_CHAN);
+    
     i2cStartTx(ENC_I2C_CHAN);
     i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_L_RD);
-    enc_data_r1 = i2cReceiveByte(ENC_I2C_CHAN);
+    i2cReadString(1,2,enc_data,10000);
     i2cEndTx(ENC_I2C_CHAN);
 
-    i2cStartTx(ENC_I2C_CHAN); //read second register
-    i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_L_WR);
-    i2cSendByte(ENC_I2C_CHAN, 0xFF);
-    i2cEndTx(ENC_I2C_CHAN);
-    i2cStartTx(ENC_I2C_CHAN);
-    i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_L_RD);
-    enc_data_r2 = i2cReceiveByte(ENC_I2C_CHAN);
-    i2cEndTx(ENC_I2C_CHAN);
-
-    lpos = ((enc_data_r2 << 6)+(enc_data_r1 & 0x3F)); //concatenate registers
-    encPos.LPOS = lpos;
+    encPos.LPOS = ((enc_data[1] << 6)+(enc_data[0] & 0x3F)); //concatenate registers
 
     return;
 }
