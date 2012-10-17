@@ -89,7 +89,7 @@ void encGetRPos(void) {
 
     unsigned char enc_data[2];
 
-    i2cStartTx(ENC_I2C_CHAN); //Setup to burst read both registers
+    i2cStartTx(ENC_I2C_CHAN); //Setup to burst read both registers, 0xFE and 0xFF
     i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_R_WR);
     i2cSendByte(ENC_I2C_CHAN, 0xFE);
     i2cEndTx(ENC_I2C_CHAN);
@@ -112,7 +112,7 @@ void encGetLPos(void) {
 
     unsigned char enc_data[2];
 
-    i2cStartTx(ENC_I2C_CHAN); //Setup to burst read both registers
+    i2cStartTx(ENC_I2C_CHAN); //Setup to burst read both registers, 0xFE and 0xFF
     i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_L_WR);
     i2cSendByte(ENC_I2C_CHAN, 0xFE);
     i2cEndTx(ENC_I2C_CHAN);
@@ -135,30 +135,22 @@ void encGetLPos(void) {
  *****************************************************************************/
 float encGetAux1Pos(void) {
 
-    unsigned char enc_data_r1, enc_data_r2;
-
     //unsigned char apos;
     float apos;
 
-    i2cStartTx(ENC_I2C_CHAN); //read first register
+     unsigned char enc_data[2];
+
+    i2cStartTx(ENC_I2C_CHAN); //Setup to burst read both registers, 0xFE and 0xFF
     i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_AUX1_WR);
     i2cSendByte(ENC_I2C_CHAN, 0xFE);
     i2cEndTx(ENC_I2C_CHAN);
+
     i2cStartTx(ENC_I2C_CHAN);
     i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_AUX1_RD);
-    enc_data_r1 = i2cReceiveByte(ENC_I2C_CHAN);
+    i2cReadString(1,2,enc_data,10000);
     i2cEndTx(ENC_I2C_CHAN);
 
-    i2cStartTx(ENC_I2C_CHAN); //read second register
-    i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_AUX1_WR);
-    i2cSendByte(ENC_I2C_CHAN, 0xFF);
-    i2cEndTx(ENC_I2C_CHAN);
-    i2cStartTx(ENC_I2C_CHAN);
-    i2cSendByte(ENC_I2C_CHAN, ENC_ADDR_AUX1_RD);
-    enc_data_r2 = i2cReceiveByte(ENC_I2C_CHAN);
-    i2cEndTx(ENC_I2C_CHAN);
-
-    apos = ((enc_data_r2 << 6)+(enc_data_r1 & 0x3F)) * LSB2ENCDEG; //concatenate registers
+    apos = ((enc_data[1] << 6)+(enc_data[0] & 0x3F)) * LSB2ENCDEG; //concatenate registers
 
     return apos;
 }

@@ -61,7 +61,7 @@ static void imuISRHandler(){
 
 	/////// Get Gyro data and calc average via filter
         gyroReadXYZ(); //bad design of gyro module; todo: humhu
-	gyroGetIntXYZ(gyroData);
+//	gyroGetIntXYZ(gyroData);
 	
 
         lastGyroXValue = gyroData[0];
