@@ -48,14 +48,16 @@ int main(void) {
     amsPIDSetup();
     encSetup();
     tiHSetup();
-//  mpuSetup();
+    _LATC15 = 1;
+    _LATG9 = 1;
+    mpuSetup();
 //    amsCtrlSetGains(0,1000,00,00,0,0);
 
     while(1){
-        amsGetPos(1);
-        amsCtrlSetInput(1, 2000);
-        amsCtrlPIDUpdate(1, encPos[1].calibPOS);
-        tiHSetDC(2, amsPID[1].output);
+        tiHSetDC(1, 0x2000);
+        tiHSetDC(2, 0x6000);
+        tiHSetDC(3, 0xA000);
+        tiHSetDC(4, 0xF000);
     }
 
     LED_GREEN = 0;
