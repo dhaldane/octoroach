@@ -157,10 +157,8 @@ void cmdHandleRadioRxBuffer(void) {
     unsigned char command, status;
 
     if ((pld = radioReceivePayload()) != NULL) {
-
         status = payGetStatus(pld);
         command = payGetType(pld);
-
         //Due to bugs, command may be a surprious value; check explicitly
         if (command <= MAX_CMD_FUNC) {
             cmd_func[command](status, pld->data_length, payGetData(pld));
@@ -356,8 +354,11 @@ static void cmdSetThrustOpenLoop(unsigned char status, unsigned char length, uns
     //set motor duty cycles
     //PDC1 = argsPtr->dc1;
     //PDC2 = argsPtr->dc1;
-    mcSetDutyCycle(MC_CHANNEL_PWM1, argsPtr->dc1);
-    mcSetDutyCycle(MC_CHANNEL_PWM2, argsPtr->dc2);
+    // mcSetDutyCycle(MC_CHANNEL_PWM1, argsPtr->dc1);
+    // mcSetDutyCycle(MC_CHANNEL_PWM2, argsPtr->dc2);
+
+	tiHSetDC(1, (argsPtr->dc1)*64);
+	tiHSetDC(2, (argsPtr->dc2)*64);
 }
 
 static void cmdSetThrustClosedLoop(unsigned char status, unsigned char length, unsigned char *frame) {

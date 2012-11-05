@@ -39,6 +39,7 @@ def xbee_received(packet):
    
     status = ord(rf_data[0])
     type = ord(rf_data[1])
+	print 'Received %d' % type
     data = rf_data[2:]
     
     

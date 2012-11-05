@@ -30,9 +30,6 @@
 #include <stdlib.h>
 
 extern unsigned char id[4];
-extern ENCPOS encPos[NUM_ENC];
-extern pidObj amsPID[nPIDS];
-
 volatile unsigned long wakeTime;
 extern volatile char g_radio_duty_cycle;
 extern volatile char inMotion;
@@ -42,22 +39,28 @@ int dcCounter;
 
 int main(void) {
 
+    wakeTime = 0;
+    dcCounter = 0;
+
+    WordVal src_addr_init = {RADIO_SRC_ADDR};
+    WordVal src_pan_id_init = {RADIO_SRC_PAN_ID};
+    WordVal dst_addr_init = {RADIO_DST_ADDR};
+
     SetupClock();
     SwitchClocks();
     SetupPorts();
-    amsPIDSetup();
-    encSetup();
     tiHSetup();
-    _LATC15 = 1;
-    _LATG9 = 1;
-    mpuSetup();
-//    amsCtrlSetGains(0,1000,00,00,0,0);
 
+
+    //swatchSetup();
+    radioInit(src_addr_init, src_pan_id_init, RADIO_RXPQ_MAX_SIZE, RADIO_TXPQ_MAX_SIZE);
+    radioSetChannel(RADIO_CHANNEL); //Set to my channel
+    macSetDestAddr(dst_addr_init);
+    cmdSetup();
+    
+    if(phyGetState() == 0x16)  { LED_RED = 1; }
     while(1){
-        tiHSetDC(1, 0x2000);
-        tiHSetDC(2, 0x6000);
-        tiHSetDC(3, 0xA000);
-        tiHSetDC(4, 0xF000);
+        cmdHandleRadioRxBuffer();
     }
 
     LED_GREEN = 0;
@@ -66,32 +69,6 @@ int main(void) {
     _LATG9 = 1;
     _LATC15 = 1;
 
-
-    //_LATC15 = 0;
-    //_LATG9 = 0;
-
-    //_RC15 = 0;
-    //_RG9 = 0;
-    /*
-    while(1)
-    {
-     delay_ms(1000);
-
-    LED_RED = 1;
-    _RC15 = 1;
-    _RG9 = 1;
-    //_LATC15 = 1;
-    //_LATG9 = 1;
-    delay_ms(1000);
-
-    LED_RED = 0;
-    _RC15 = 0;
-    _RG9 = 0;
-    //_LATC15 = 0;
-    //_LATG9 = 0;
-
-    }
-   
 
 
     //testRadio();
@@ -104,12 +81,7 @@ int main(void) {
     LED_RED = 1;
     LED_YELLOW = 1;
 
-    wakeTime = 0;
-    dcCounter = 0;
 
-    WordVal src_addr_init = {RADIO_SRC_ADDR};
-    WordVal src_pan_id_init = {RADIO_SRC_PAN_ID};
-    WordVal dst_addr_init = {RADIO_DST_ADDR};
 
 
     //batSetup();
@@ -117,10 +89,7 @@ int main(void) {
     //int old_ipl;
     //mSET_AND_SAVE_CPU_IP(old_ipl, 1)
 
-    //swatchSetup();
-    radioInit(src_addr_init, src_pan_id_init, RADIO_RXPQ_MAX_SIZE, RADIO_TXPQ_MAX_SIZE);
-    radioSetChannel(RADIO_CHANNEL); //Set to my channel
-    macSetDestAddr(dst_addr_init);
+
 
     //LED_YELLOW = 1;
 
