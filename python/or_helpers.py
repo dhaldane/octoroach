@@ -96,7 +96,7 @@ def sendEcho(msg):
 def downloadTelemetry(numSamples):
     #Wait for run length before starting download
     time.sleep((shared.runtime + shared.leadoutTime)*1.10/1000.0 )
-    
+    print shared.imudata.count([])
     raw_input("Press Enter to start readback ...")
     print "started readback"
     xb_send(shared.xb, shared.DEST_ADDR, 0, command.FLASH_READBACK, pack('=L',numSamples))
@@ -133,6 +133,7 @@ def downloadTelemetry(numSamples):
 
     print "data saved to ",shared.dataFileName
     #Done with flash download and save
+    shared.imudata=[]
     
     
 def wakeRobot():

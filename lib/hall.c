@@ -21,7 +21,7 @@
 #include "sys_service.h"
 #include <stdlib.h> // for malloc
 
-#define K_EMF    ((1000/256)* 182.9/219.6)  // A/D units per hall count per ms, scale by >>8
+#define K_EMF    ((1000/256)* 0.27)//((1000/256)* 182.9/219.6)  // A/D units per hall count per ms, scale by >>8
 
 //Private Functions
 static void SetupTimer1(void);
@@ -197,7 +197,7 @@ void hallSetup() {
 
     // Controller to PWM channel correspondance
     hallOutputChannels[0] = MC_CHANNEL_PWM1;
-    hallOutputChannels[1] = MC_CHANNEL_PWM2;
+    hallOutputChannels[1] = MC_CHANNEL_PWM4;
 
     //Init for velocity profile objects
     hallInitPIDVelProfile();
@@ -248,13 +248,13 @@ void hallInitPIDVelProfile() {
         hallPIDVel[j].leg_stride = 0; // set initial leg count
         // set control intervals during stride - try to get close to 21.3 ratio (use 42 counts)
         hallPIDVel[j].interval[0] = (4 * STRIDE_TICKS / NUM_VELS / 3);
-        hallPIDVel[j].delta[0] = 11;
+        hallPIDVel[j].delta[0] = 8;
         hallPIDVel[j].interval[1] = (2 * STRIDE_TICKS / NUM_VELS / 3);
-        hallPIDVel[j].delta[1] = 10;
+        hallPIDVel[j].delta[1] = 8;
         hallPIDVel[j].interval[2] = (4 * STRIDE_TICKS / NUM_VELS / 3);
-        hallPIDVel[j].delta[2] = 11;
+        hallPIDVel[j].delta[2] = 8;
         hallPIDVel[j].interval[3] = (2 * STRIDE_TICKS / NUM_VELS / 3);
-        hallPIDVel[j].delta[3] = 10;
+        hallPIDVel[j].delta[3] = 8;
         for (i = 0; i < NUM_VELS; i++) { // interpolate values between setpoints, <<4 for resolution
             hallPIDVel[j].vel[i] = (hallPIDVel[j].delta[i] << 8) / hallPIDVel[j].interval[i];
         }
@@ -375,6 +375,8 @@ static void hallServiceRoutine(void)
     } else // update velocity setpoints if needed - only when running
     {
         hallGetSetpoint();
+		SetDCMCPWM(2,0xffff);
+		SetDCMCPWM(3,0);
     }
 
     hallUpdateBEMF();
@@ -403,9 +405,9 @@ static void hallGetSetpoint() {
                 hallPIDVel[j].leg_stride++; // one full leg revolution
                 // need to correct for 426 counts per leg stride
                 // 5 rev @ 42 counts/rev = 210, actual set point 5 rev @ 42.6 counts, so add 3 to p_input
-                if ((hallPIDVel[j].leg_stride % 5) == 0) {
-                    hallPIDObjs[j].p_input += 3;
-                }
+                // if ((hallPIDVel[j].leg_stride % 5) == 0) {
+                    // hallPIDObjs[j].p_input += 3;
+                // }
             } // loop on index
 
         }
@@ -414,6 +416,16 @@ static void hallGetSetpoint() {
 
 static void hallSetControl() {
     int j;
+	int phase_error;
+	
+	static int phase_error_sum = 0;
+	
+	phase_error = motor_count[0]-motor_count[1];
+	phase_error_sum += phase_error;
+	
+	hallPIDObjs[0].phase_offset = -phase_error*hallPIDObjs[0].feedforward - phase_error_sum*20;
+	hallPIDObjs[1].phase_offset = phase_error*hallPIDObjs[1].feedforward + phase_error_sum*20;
+	
     // 0 = right side
     for (j = 0; j < NUM_HALL_PIDS; j++) { //pidobjs[0] : right side
         // p_input has scaled velocity interpolation to make smoother
@@ -421,16 +433,20 @@ static void hallSetControl() {
         hallPIDObjs[j].v_error = hallPIDObjs[j].v_input - hallbemf[j];
         //Update values
         hallUpdatePID(&(hallPIDObjs[j]));
-        if (hallPIDObjs[j].onoff) {
+	}
+    
+	if (hallPIDObjs[0].onoff) {
         //Might want to change this in the future, if we want to track error
         //even when the motor is off.
         //Set PWM duty cycle
-            SetDCMCPWM(hallOutputChannels[j], hallPIDObjs[j].output, 0); //PWM1.L
-        }//end of if (on / off)
+		SetDCMCPWM(hallOutputChannels[0], hallPIDObjs[0].output, 0); //PWM1.L
+		SetDCMCPWM(hallOutputChannels[1], hallPIDObjs[1].output, 0); //PWM1.L
+     }//end of if (on / off)
         else { //if PID loop is off
-            SetDCMCPWM(hallOutputChannels[j], 0, 0);
+            SetDCMCPWM(hallOutputChannels[0], 0, 0);
+		SetDCMCPWM(hallOutputChannels[1], 0, 0);
+		phase_error_sum = 0;
         }
-    } // end of for(j)
 }
 
 static void hallUpdatePID(pidPos *pid) {
@@ -440,8 +456,9 @@ static void hallUpdatePID(pidPos *pid) {
     // better check scale factors
     /* just use simpled PID, offset is already subtracted in PID GetState */
     // scale so doesn't over flow
-    pid->preSat = pid->feedforward + pid->p +          //Note Hall-specific software PID update uses direct ff, not Kff gain
+    pid->preSat = pid->phase_offset + pid->p +          //Note Hall-specific software PID update uses direct ff, not Kff gain
             ((pid->i + pid->d) >> 4); // divide by 16
+			
     pid->output = pid->preSat;
     //Clamp output above 0 since don't have H bridge
     if (pid->preSat < pid->minVal) {

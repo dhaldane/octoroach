@@ -1,4 +1,4 @@
-DEST_ADDR = '\x20\x52'
+DEST_ADDR = '\x21\x02'
 xb = []
 ser = []
 

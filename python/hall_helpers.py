@@ -158,7 +158,7 @@ def readinGains(lr, params):
 def hallProceed(params):
     thrust = [params.throttle[0], params.duration, params.throttle[1], params.duration]
     xb_send(0, command.SET_THRUST_CLOSED_LOOP, pack('4h',*thrust))
-    print "Throttle = ",params.throttle,"duration =", params.duration
+    print "Frequency = ",params.legFrequency,"duration =", params.duration
     time.sleep(0.1)
 
 def queryRobot():
@@ -198,3 +198,6 @@ def sendWhoAmI():
 def hallZeroPos():
     xb_send(0, command.ZERO_POS,  "Zero motor")
     time.sleep(0.1)
+
+
+    

@@ -12,7 +12,7 @@
 #define NUM_PIDS	2
 #define NUM_VELS	4 // 8 velocity setpoints per cycle
 // actual gear ratio 21.3:1. So with 2 counts/rev, get 42.6:1
-#define COUNT_REVS  42   // depends on gear ratio- counts per leg rev
+#define COUNT_REVS  32   // depends on gear ratio- counts per leg rev
 // STRIDE_TICKS should be easily divisible
 #define STRIDE_TICKS (COUNT_REVS*16)  // number of t1 ticks/leg revolution
 
@@ -48,6 +48,7 @@ typedef struct {
     int output; //  control output
     int maxVal, minVal;
     int satValPos, satValNeg;
+	int phase_offset;
 } pidPos;
 
 // telemetry control structure

@@ -34,7 +34,7 @@ def main():
     #  [ Kp , Ki , Kd , Kaw , ff         Kp , Ki , Kd , Kaw , ff ]
     #    ----------LEFT---------         ----------RIGHT----------
     
-    motorgains = [600,0,400,0,50, 600,0,400,0,50]
+    motorgains = [300,0,300,0,600, 300,0,300,0,600]
     throttle = [0,0]
     duration = 3000
     delta = [8,13,8,13]  # adds up to 42 counts- should be 42.6
