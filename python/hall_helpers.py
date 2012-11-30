@@ -113,6 +113,17 @@ def setVelProfile(params):
     temp = 2*(params.intervals + params.delta + params.vel)
     xb_send(0, command.SET_VEL_PROFILE, pack('24h',*temp))
     time.sleep(0.2)
+
+#set ramp profile
+def setRampProfile(params):
+    print "Sending ramp profile"
+    print "set points [encoder values]", params.delta
+    print "intervals (ms)",params.intervals
+    print "velocities (<<8)",params.vel
+    print "Cyclic frequency :", params.legFrequency
+    temp = 2*(params.intervals + params.delta + params.vel)
+    xb_send(0, command.SET_RAMP_PROFILE, pack('24h',*temp))
+    time.sleep(0.2)
     
 
 # set robot control gains

@@ -84,6 +84,7 @@ static void cmdEraseSector(unsigned char status, unsigned char length, unsigned 
 static void cmdFlashReadback(unsigned char status, unsigned char length, unsigned char *frame);
 static void cmdSleep(unsigned char status, unsigned char length, unsigned char *frame);
 static void cmdSetVelProfile(unsigned char status, unsigned char length, unsigned char *frame);
+static void cmdSetRampProfile(unsigned char status, unsigned char length, unsigned char *frame);
 static void cmdWhoAmI(unsigned char status, unsigned char length, unsigned char *frame);
 static void cmdHallTelemetry(unsigned char status, unsigned char length, unsigned char *frame);
 static void cmdZeroPos(unsigned char status, unsigned char length, unsigned char *frame);
@@ -127,6 +128,7 @@ void cmdSetup(void) {
     cmd_func[CMD_FLASH_READBACK] = &cmdFlashReadback;
     cmd_func[CMD_SLEEP] = &cmdSleep;
     cmd_func[CMD_SET_VEL_PROFILE] = &cmdSetVelProfile;
+    cmd_func[CMD_SET_RAMP_PROFILE] = &cmdSetRampProfile;
     cmd_func[CMD_WHO_AM_I] = &cmdWhoAmI;
     cmd_func[CMD_HALL_TELEMETRY] = &cmdHallTelemetry;
     cmd_func[CMD_ZERO_POS] = &cmdZeroPos;
@@ -363,9 +365,9 @@ static void cmdSetThrustClosedLoop(unsigned char status, unsigned char length, u
 #ifdef HALL_SENSORS
     PKT_UNPACK(_args_cmdSetThrustClosedLoop, argsPtr, frame);
 
-    hallPIDSetInput(0 , argsPtr->chan1, argsPtr->runtime1);
+    hallPIDSetInput(0 , argsPtr->chan1, argsPtr->runtime1, 1);
     hallPIDOn(0);
-    hallPIDSetInput(1 , argsPtr->chan1, argsPtr->runtime2);
+    hallPIDSetInput(1 , argsPtr->chan1, argsPtr->runtime2, 1);
     hallPIDOn(1);
 #else
     PKT_UNPACK(_args_cmdSetThrustClosedLoop, argsPtr, frame);
@@ -547,6 +549,24 @@ static void cmdSetVelProfile(unsigned char status, unsigned char length, unsigne
     paySetType(pld, CMD_SET_VEL_PROFILE);
     // packet length = 48 bytes (24 ints)
     memcpy((pld->pld_data) + 2, frame, sizeof(_args_cmdSetVelProfile));
+    radioSendPayload((WordVal) macGetDestAddr(), pld);
+}
+
+static void cmdSetRampProfile(unsigned char status, unsigned char length, unsigned char *frame) {
+    Payload pld;
+    PKT_UNPACK(_args_cmdSetRampProfile, argsPtr, frame);
+
+    hallSetRampProfile(0, argsPtr->intervalsL, argsPtr->deltaL, argsPtr->velL);
+    hallSetRampProfile(1, argsPtr->intervalsR, argsPtr->deltaR, argsPtr->velR);
+
+    //Send confirmation packet
+    pld = payCreateEmpty(sizeof(_args_cmdSetRampProfile));
+    //pld->pld_data[0] = status;
+    paySetStatus(pld, status);
+    //pld->pld_data[1] = CMD_SET_VEL_PROFILE;
+    paySetType(pld, CMD_SET_RAMP_PROFILE);
+    // packet length = 48 bytes (24 ints)
+    memcpy((pld->pld_data) + 2, frame, sizeof(_args_cmdSetRampProfile));
     radioSendPayload((WordVal) macGetDestAddr(), pld);
 }
 

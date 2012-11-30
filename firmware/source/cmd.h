@@ -36,6 +36,7 @@
 #define CMD_ZERO_POS                0x90
 #define CMD_SET_HALL_GAINS          0x91
 #define CMD_SET_TAIL_QUEUE          0x92
+#define CMD_SET_RAMP_PROFILE        0x93
 
 //Argument lengths
 //lenghts are in bytes
@@ -139,6 +140,16 @@ typedef struct{
     int deltaR[NUM_VELS];
     int velR[NUM_VELS];
 } _args_cmdSetVelProfile;
+
+//cmdSetRampProfile
+typedef struct{
+    int intervalsL[NUM_RVELS];
+    int deltaL[NUM_RVELS];
+    int velL[NUM_RVELS];
+    int intervalsR[NUM_RVELS];
+    int deltaR[NUM_RVELS];
+    int velR[NUM_RVELS];
+} _args_cmdSetRampProfile;
 
 //cmdHallTelemetry
 typedef struct {

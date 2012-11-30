@@ -24,6 +24,7 @@ pktFormat = { \
     command.SLEEP:                  'b', \
     command.ECHO:                   'c' ,\
     command.SET_VEL_PROFILE:        '24h' ,\
+    command.SET_RAMP_PROFILE:        '24h' ,\
     command.WHO_AM_I:               '', \
     command.ZERO_POS:               '=2l', \
     command.SET_HALL_GAINS:         '10h' \
@@ -136,6 +137,11 @@ def xbee_received(packet):
         # SET_VEL_PROFILE
         elif (type == command.SET_VEL_PROFILE):
             print "Set Velocity Profile readback:"
+            temp = unpack(pattern, data)
+            print temp
+        # SET_RAMP_PROFILE
+        elif (type == command.SET_RAMP_PROFILE):
+            print "Set Ramp Profile readback:"
             temp = unpack(pattern, data)
             print temp
         # WHO_AM_I

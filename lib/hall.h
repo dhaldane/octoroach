@@ -11,6 +11,7 @@
 #define GAIN_SCALER         100
 #define NUM_PIDS	2
 #define NUM_VELS	4 // 8 velocity setpoints per cycle
+#define NUM_RVELS	4 // Define ramp granularity
 // actual gear ratio 21.3:1. So with 2 counts/rev, get 42.6:1
 #define COUNT_REVS  32   // depends on gear ratio- counts per leg rev
 // STRIDE_TICKS should be easily divisible
@@ -72,13 +73,26 @@ typedef struct {
     int leg_stride;
 } hallVelLUT;
 
+typedef struct {
+    int interpolate; // intermediate value between setpoints
+    unsigned long expire; // end of current segment
+    int index; // right index to moves
+    int interval[NUM_RVELS]; // number of ticks between intervals
+    int delta[NUM_RVELS]; // increments for right setpoint
+    int vel[NUM_RVELS]; // velocity increments to setpoint, >>8
+    int leg_stride;
+    int tRamp;
+} hallRampVelLUT;
+	
+
 //Public Functions
 void hallSetup();
 void hallInitPIDVelProfile();
 void hallSetVelProfile(int pid_num, int *interval, int *delta, int *vel);
+void hallSetRampProfile(int pid_num, int *interval, int *delta, int *vel);
 void hallInitPIDObj(pidObj *pid, int Kp, int Ki, int Kd, int Kaw, int ff);
 void hallInitPIDObjPos(pidPos *pid, int Kp, int Ki, int Kd, int Kaw, int ff);
-void hallPIDSetInput(int pid_num, int input_val, unsigned int run_time);
+void hallPIDSetInput(int pid_num, int input_val, unsigned int run_time, char ramp);
 void hallSetInputSameRuntime(int pid_num, int input_val);
 void hallSetGains(int pid_num, int Kp, int Ki, int Kd, int Kaw, int ff);
 void hallGetState(int *measurements);

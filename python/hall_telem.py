@@ -21,6 +21,10 @@ def main():
     intervals = [30, 30, 30, 30]
     cycle = 125
     setupSerial()
+
+    ##Ramp parameters
+    rDelta = [20,60,80,128]
+    rIntervals = [200, 200, 200, 200]
     
 
     
@@ -93,6 +97,13 @@ def main():
             intervals[3]=intervals[3]+cycle - tempsum
             hparams = hallParams(motorgains, throttle, duration, delta, intervals)
             setVelProfile(hparams)
+        elif keypress == 's':
+            print 'cycle='+str(cycle)+' duration='+str(duration)+'. New Frequency (Hz):',
+            intervals = [cycle/4, cycle/4, cycle/4, cycle/4]
+            tempsum = intervals[0]+intervals[1]+intervals[2]+intervals[3]
+            intervals[3]=intervals[3]+cycle - tempsum
+            rparams = hallParams(motorgains, throttle, duration, rDelta, rIntervals)
+            setRampProfile(rparams)
         elif keypress == 'z':
             hallZeroPos()
             print 'read motorpos and zero'
