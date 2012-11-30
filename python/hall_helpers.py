@@ -124,7 +124,7 @@ def setRampProfile(params):
     temp = 2*(params.intervals + params.delta + params.vel)
     xb_send(0, command.SET_RAMP_PROFILE, pack('24h',*temp))
     time.sleep(0.2)
-    
+
 
 # set robot control gains
 def setHallGains(motorgains):

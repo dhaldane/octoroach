@@ -11,10 +11,11 @@ def main():
 ##  Setup and Initalization
 
     ###### Operation Flags ####
-    SAVE_DATA = True
+    SAVE_DATA = False
     RESET_ROBOT = True   
 
     motorgains = [300,0,300,0,600, 300,0,300,0,600]
+    shared.motorGains = motorgains
     throttle = [0,0]
     duration = 3000
     delta = [8,8,8,8]  # adds up to 42 counts- should be 42.6
@@ -23,7 +24,7 @@ def main():
     setupSerial()
 
     ##Ramp parameters
-    rDelta = [20,60,80,128]
+    rDelta = [10,20,102,102]
     rIntervals = [200, 200, 200, 200]
     
 
@@ -38,6 +39,9 @@ def main():
     setHallGains(motorgains)
     setVelProfile(hparams)
     hallZeroPos()
+
+    rparams = hallParams(motorgains, throttle, duration, rDelta, rIntervals)
+    setRampProfile(rparams)
 
     shared.leadinTime = 500;
     shared.leadoutTime = 500;
@@ -79,17 +83,22 @@ def main():
                 downloadTelemetry(numSamples)
 
         elif keypress == 'r':
+            
             resetRobot()
             time.sleep(0.5)
             print 'Resetting robot'
             setHallGains(motorgains)
+            
         elif keypress == 't':
+            
             print 'cycle='+str(cycle)+' duration='+str(duration)+'. New duration:',
             duration = int(raw_input())
             hparams = hallParams(motorgains, throttle, duration, delta, intervals)
             setVelProfile(hparams)
             shared.runtime = hparams.duration
+            
         elif keypress == 'a':
+            
             print 'cycle='+str(cycle)+' duration='+str(duration)+'. New Frequency (Hz):',
             cycle = 1000/int(raw_input())
             intervals = [cycle/4, cycle/4, cycle/4, cycle/4]
@@ -97,21 +106,33 @@ def main():
             intervals[3]=intervals[3]+cycle - tempsum
             hparams = hallParams(motorgains, throttle, duration, delta, intervals)
             setVelProfile(hparams)
+            
         elif keypress == 's':
-            print 'cycle='+str(cycle)+' duration='+str(duration)+'. New Frequency (Hz):',
-            intervals = [cycle/4, cycle/4, cycle/4, cycle/4]
-            tempsum = intervals[0]+intervals[1]+intervals[2]+intervals[3]
-            intervals[3]=intervals[3]+cycle - tempsum
+            
+            print 'Enter Delta values as CSV',
+            x = raw_input()
+            if len(x):
+                temp = map(int,x.split(','))
+                for i in range(0,3):
+                    rDelta[i] = temp[i]
+            else:
+                print 'Not enough values'
             rparams = hallParams(motorgains, throttle, duration, rDelta, rIntervals)
             setRampProfile(rparams)
+            shared.rampDelta = rDelta
+            
         elif keypress == 'z':
+            
             hallZeroPos()
             print 'read motorpos and zero'
+            
         elif (keypress == 'q') or (ord(keypress) == 26):
+            
             print "Exit."
             shared.xb.halt()
             shared.ser.close()
             sys.exit(0)
+            
         else:
             print "** unknown keyboard command** \n"
             menu()

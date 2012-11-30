@@ -414,7 +414,7 @@ static void hallServiceRoutine(void)
         //	hallPIDSetInput(1, 0, 0);
         hallPIDObjs[1].onoff = 0;
         SetDCMCPWM(2,0,0);  //Set Sync LED on H-Bridge
-		SetDCMCPWM(3,0,0);
+        SetDCMCPWM(3,0,0);
     } else // update velocity setpoints if needed - only when running
     {
 	if(temp <= lastRampTime){

@@ -75,6 +75,7 @@ def writeFileHeader(dataFileName):
     fileout.write('%  runtime       = ' + repr(shared.runtime) + '\n')
     fileout.write('%  numSamples    = ' + repr(shared.numSamples) + '\n')
     fileout.write('%  moveq         = ' + repr(shared.moveq) + '\n')
+    fileout.write('%  rampDelta     = ' + repr(shared.rampDelta) + '\n')
     fileout.write('% Columns: \n')
     fileout.write('% time | Llegs | Rlegs | DCL | DCR | GyroX | GyroY | GyroZ | GryoZAvg | AccelX | AccelY |AccelZ | LBEMF | RBEMF | SteerOut | Vbatt | SteerAngle\n')
     fileout.close()

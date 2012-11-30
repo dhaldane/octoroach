@@ -35,6 +35,7 @@ steeringGains = "NOT SET"
 runtime = 0
 numSamples = 0
 moveq = "NOT SET"
+rampDelta = "NOT SET"
 
 robotQueried = False
 maxQueries = 8
