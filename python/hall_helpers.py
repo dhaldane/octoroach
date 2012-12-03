@@ -33,7 +33,27 @@ class hallParams:
         self.cyclePeriod = sum(self.intervals)
         self.legFrequency = 1000.0 /self.cyclePeriod
 
-
+class rampParams:
+    motorgains = []
+    throttle = []
+    duration = []
+    delta = []
+    intervals = []
+    vel = []
+    #cyclePeriod = 1000; #default value
+    def __init__(self, motorgains, throttle, duration, delta, intervals):
+        self.motorgains = motorgains
+        self.throttle = throttle
+        self.duration = duration
+        self.delta = delta
+        self.intervals = intervals
+        #vel is strictly a function of delta and durations
+        self.vel = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        for i in range(0,16):
+            self.vel[i] = (self.delta[i] <<8)/self.intervals[i]
+        self.cyclePeriod = sum(self.intervals)
+        self.legFrequency = 1000.0 /self.cyclePeriod
+        
 def xb_safe_exit():
     print "Halting xb"
     shared.xb.halt()
@@ -122,7 +142,7 @@ def setRampProfile(params):
     print "velocities (<<8)",params.vel
     print "Cyclic frequency :", params.legFrequency
     temp = 2*(params.intervals + params.delta + params.vel)
-    xb_send(0, command.SET_RAMP_PROFILE, pack('24h',*temp))
+    xb_send(0, command.SET_RAMP_PROFILE, pack('96h',*temp))
     time.sleep(0.2)
 
 

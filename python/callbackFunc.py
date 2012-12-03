@@ -24,7 +24,7 @@ pktFormat = { \
     command.SLEEP:                  'b', \
     command.ECHO:                   'c' ,\
     command.SET_VEL_PROFILE:        '24h' ,\
-    command.SET_RAMP_PROFILE:        '24h' ,\
+    command.SET_RAMP_PROFILE:        '96h' ,\
     command.WHO_AM_I:               '', \
     command.ZERO_POS:               '=2l', \
     command.SET_HALL_GAINS:         '10h' \

@@ -17,7 +17,7 @@ def main():
     motorgains = [300,0,300,0,600, 300,0,300,0,600]
     shared.motorGains = motorgains
     throttle = [0,0]
-    duration = 3000
+    duration = 1700
     delta = [8,8,8,8]  # adds up to 42 counts- should be 42.6
     intervals = [30, 30, 30, 30]
     cycle = 125
@@ -40,7 +40,7 @@ def main():
     setVelProfile(hparams)
     hallZeroPos()
 
-    rparams = hallParams(motorgains, throttle, duration, rDelta, rIntervals)
+    rparams = rampParams(motorgains, throttle, duration, rDelta, rIntervals)
     setRampProfile(rparams)
 
     shared.leadinTime = 500;
@@ -113,11 +113,11 @@ def main():
             x = raw_input()
             if len(x):
                 temp = map(int,x.split(','))
-                for i in range(0,3):
+                for i in range(0,16):
                     rDelta[i] = temp[i]
             else:
                 print 'Not enough values'
-            rparams = hallParams(motorgains, throttle, duration, rDelta, rIntervals)
+            rparams = rampParams(motorgains, throttle, duration, rDelta, rIntervals)
             setRampProfile(rparams)
             shared.rampDelta = rDelta
             
