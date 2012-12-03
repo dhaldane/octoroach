@@ -210,7 +210,7 @@ static void telemISRHandler() {
             data.telemStruct.timeStamp = (long) swatchTic();
 #ifdef HALL_SENSORS
             data.telemStruct.inputL = (int) (motorcounts[0] & 0xffff);
-            data.telemStruct.inputR = (int) (hallPIDObjs[0].p_input & 0xffff);// (motorcounts[1] & 0xffff);
+            data.telemStruct.inputR = (int) (motorcounts[1] & 0xffff); //(hallPIDObjs[0].p_input & 0xffff)
 #else
             data.telemStruct.inputL = motor_pidObjs[0].input;
             data.telemStruct.inputR = motor_pidObjs[1].input;

@@ -141,8 +141,8 @@ def setRampProfile(params):
     print "intervals (ms)",params.intervals
     print "velocities (<<8)",params.vel
     print "Cyclic frequency :", params.legFrequency
-    temp = 2*(params.intervals + params.delta + params.vel)
-    xb_send(0, command.SET_RAMP_PROFILE, pack('96h',*temp))
+    temp = (params.intervals + params.delta + params.vel)
+    xb_send(0, command.SET_RAMP_PROFILE, pack('48h',*temp))
     time.sleep(0.2)
 
 

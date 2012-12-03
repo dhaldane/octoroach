@@ -143,9 +143,6 @@ typedef struct{
 
 //cmdSetRampProfile
 typedef struct{
-    int intervalsL[NUM_RVELS];
-    int deltaL[NUM_RVELS];
-    int velL[NUM_RVELS];
     int intervalsR[NUM_RVELS];
     int deltaR[NUM_RVELS];
     int velR[NUM_RVELS];

@@ -556,14 +556,14 @@ static void cmdSetRampProfile(unsigned char status, unsigned char length, unsign
     Payload pld;
     PKT_UNPACK(_args_cmdSetRampProfile, argsPtr, frame);
 
-    hallSetRampProfile(0, argsPtr->intervalsL, argsPtr->deltaL, argsPtr->velL);
+    hallSetRampProfile(0, argsPtr->intervalsR, argsPtr->deltaR, argsPtr->velR);
     hallSetRampProfile(1, argsPtr->intervalsR, argsPtr->deltaR, argsPtr->velR);
 
     //Send confirmation packet
     pld = payCreateEmpty(sizeof(_args_cmdSetRampProfile));
     //pld->pld_data[0] = status;
     paySetStatus(pld, status);
-    //pld->pld_data[1] = CMD_SET_VEL_PROFILE;
+    //pld->pld_data[1] = CMD_SET_RAMP_PROFILE;
     paySetType(pld, CMD_SET_RAMP_PROFILE);
     // packet length = 48 bytes (24 ints)
     memcpy((pld->pld_data) + 2, frame, sizeof(_args_cmdSetRampProfile));
