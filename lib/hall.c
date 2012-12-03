@@ -65,7 +65,8 @@ hallRampVelLUT hallPIDRampVel[NUM_HALL_PIDS];
 // may be glitch in longer missions at rollover
 unsigned long lastMoveTime;
 unsigned long lastRampTime;
-int seqIndex;
+int seqIndex, rampDeficit = 409;
+char rampFlag;
 
 static void hallGetSetpoint(char ramp);
 static void hallSetControl(char ramp);
@@ -309,6 +310,8 @@ void hallPIDSetInput(int pid_num, int input_val, unsigned int run_time, char ram
 		/*	pidObjs[pid_num].p_input += pidVel[pid_num].delta[0];	//update to first set point
 		***  this should be set only after first .expire time to avoid initial transients */
 		hallPIDRampVel[pid_num].index = 0; // reset setpoint index
+		rampFlag=0;
+	
 	}
 	else
 	{
@@ -422,6 +425,15 @@ static void hallServiceRoutine(void)
 		hallGetSetpoint(ramp);
 	} else
 	{
+	if(rampFlag == 0){
+		hallPIDVel[0].expire = temp + (long) hallPIDVel[0].interval[0]; // end of first interval
+		hallPIDVel[0].interpolate = 0;
+		hallPIDVel[0].index = 0;
+		hallPIDVel[1].expire = temp + (long) hallPIDVel[1].interval[0]; // end of first interval
+		hallPIDVel[1].interpolate = 0;
+		hallPIDVel[1].index = 0;
+		rampFlag = 1;
+	}
         hallGetSetpoint(0);
         ramp = 0;
 	}

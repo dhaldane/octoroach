@@ -11,7 +11,7 @@
 #define GAIN_SCALER         100
 #define NUM_PIDS	2
 #define NUM_VELS	4 // 8 velocity setpoints per cycle
-#define NUM_RVELS	4 // Define ramp granularity
+#define NUM_RVELS	16 // Define ramp granularity
 // actual gear ratio 21.3:1. So with 2 counts/rev, get 42.6:1
 #define COUNT_REVS  32   // depends on gear ratio- counts per leg rev
 // STRIDE_TICKS should be easily divisible

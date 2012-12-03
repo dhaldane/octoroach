@@ -34,6 +34,7 @@ extern pidObj motor_pidObjs[NUM_MOTOR_PIDS];
 extern int bemf[NUM_MOTOR_PIDS];
 extern int hallbemf[NUM_HALL_PIDS];
 extern pidObj steeringPID;
+extern pidPos hallPIDObjs[NUM_HALL_PIDS];
 
 //global flag from radio module to know if last packet was ACK'd
 //TODO: fix this, add a getter for the flag to radio code
@@ -209,7 +210,7 @@ static void telemISRHandler() {
             data.telemStruct.timeStamp = (long) swatchTic();
 #ifdef HALL_SENSORS
             data.telemStruct.inputL = (int) (motorcounts[0] & 0xffff);
-            data.telemStruct.inputR = (int) (motorcounts[1] & 0xffff);
+            data.telemStruct.inputR = (int) (motorcounts[1] & 0xffff);//(hallPIDObjs[0].p_input & 0xffff);
 #else
             data.telemStruct.inputL = motor_pidObjs[0].input;
             data.telemStruct.inputR = motor_pidObjs[1].input;
